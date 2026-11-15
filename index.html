@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FSJ-Spiel: Sonnenblumen-Rennen</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e6f4fa;--card:#fff;--ink:#16324a;--mute:#4d6a80;--line:#c4dcea;--sun:#ffb703;--sunbg:#fff1c4;--green:#0f7b8a;--ok:#1b7a43;--okbg:#d9f3e2;--bad:#b3261e;--badbg:#fde2df;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0e1b27;--card:#152636;--ink:#e8f2f9;--mute:#9fb8cb;--line:#2b4358;--sunbg:#4a3d0a;--green:#5ad1e0;--ok:#7fe0a0;--okbg:#173a2c;--bad:#ff9d94;--badbg:#42201d}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.5 "Nunito","Segoe UI",system-ui,sans-serif}
+main{max-width:620px;margin:0 auto;padding:18px 16px 50px}
+h1{font-size:2rem;font-weight:800;line-height:1.15;margin:.3em 0 .2em;color:var(--green)}
+.card{background:var(--card);border:1px solid var(--line);border-top:8px solid var(--sun);border-radius:22px;padding:20px;margin-top:16px;box-shadow:0 6px 18px rgba(15,60,90,.12)}
+.lead{color:var(--mute)}
+.hud{display:flex;justify-content:space-between;gap:8px;font-weight:bold;flex-wrap:wrap}
+.bar{height:14px;background:var(--line);border-radius:999px;overflow:hidden;margin:12px 0}.bar i{border-radius:999px}
+.bar i{display:block;height:100%;width:100%;background:var(--sun)}
+.bar i.low{background:var(--bad)}
+.lv{color:var(--mute);font-size:.95rem}
+.q{font-size:1.25rem;margin:10px 0 14px}
+.sent{font-size:1.2rem;font-weight:bold;margin:10px 0 14px}
+.gap{display:inline-block;min-width:3em;border-bottom:3px solid var(--sun);text-align:center}
+.opts{display:grid;gap:10px}
+.opt,.chip,.btn{font:inherit;cursor:pointer;border-radius:16px;border:2px solid var(--line);background:var(--sunbg);color:var(--ink);padding:12px 16px;text-align:left;font-weight:700;box-shadow:0 3px 0 var(--line)}
+.opt:hover:not(:disabled),.chip:hover{border-color:var(--green)}
+.opt.ok{background:var(--okbg);color:var(--ok);border-color:var(--ok)}
+.opt.bad{background:var(--badbg);color:var(--bad);border-color:var(--bad)}
+.btn{background:var(--green);color:var(--bg);border-color:var(--green);font-weight:bold;text-align:center;padding:12px 24px;margin-top:12px}
+.btn.alt{background:transparent;color:var(--ink);border-color:var(--line);font-weight:normal}
+button:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+.slot{display:flex;flex-wrap:wrap;gap:6px;min-height:52px;border-bottom:3px solid var(--sun);padding:6px 0;margin-bottom:12px}
+.bank{display:flex;flex-wrap:wrap;gap:8px}
+.chip{text-align:center;padding:8px 14px}
+.fb{margin-top:12px;padding:8px 12px;border-radius:8px;font-weight:bold}
+.fb.ok{background:var(--okbg);color:var(--ok)}.fb.bad{background:var(--badbg);color:var(--bad)}
+.flowers{font-size:1.5rem;letter-spacing:2px;word-break:break-all}
+.big{font-size:2.4rem;margin:6px 0}
+</style>
+</head>
+<body>
+<main>
+<h1>Sonnenblumen-Rennen 🌻</h1>
+<p class="lead">Freiwilliges Soziales Jahr im Kinderhaus Sonnenblume</p>
+<div class="card" id="game"></div>
+</main>
+<script>
+const $=(s,r=document)=>r.querySelector(s);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+/* [direkte Frage, Einleitungswort, Mittelfeld, Verb am Ende] */
+const P=[
+["Wann beginnt das FSJ?","wann","das FSJ","beginnt"],
+["Wie lange dauert das FSJ?","wie lange","das FSJ","dauert"],
+["Bekomme ich Taschengeld?","ob","ich Taschengeld","bekomme"],
+["Brauche ich einen Führerschein?","ob","ich einen Führerschein","brauche"],
+["Was macht man im Kinderhaus?","was","man im Kinderhaus","macht"],
+["Wo arbeite ich?","wo","ich","arbeite"],
+["Ist das Kinderhaus groß?","ob","das Kinderhaus","groß ist"],
+["Hat das Kinderhaus eine Website?","ob","das Kinderhaus eine Website","hat"],
+["Wer arbeitet im Team?","wer","im Team","arbeitet"],
+["Muss ich ein Foto schicken?","ob","ich ein Foto schicken","muss"],
+["Kann ich Deutsch lernen?","ob","ich Deutsch lernen","kann"],
+["Wie alt sind die Kinder?","wie alt","die Kinder","sind"],
+["Wann muss ich mich bewerben?","wann","ich mich bewerben","muss"],
+["Arbeiten wir am Wochenende?","ob","wir am Wochenende","arbeiten"],
+["Wie viel Taschengeld bekomme ich?","wie viel","Taschengeld ich","bekomme"],
+["Wohin schicke ich die Bewerbung?","wohin","ich die Bewerbung","schicke"]
+];
+const INTRO=["Ich möchte wissen,","Können Sie mir sagen,","Ich frage mich,","Ich bin unsicher,"];
+const WORDS=["ob","was","wann","wie","wo","wer","wohin","wie lange","wie viel","wie alt","wenn"];
+const LV=[
+ {n:"Stufe 1",t:"Welches Wort fehlt?",c:6,s:12},
+ {n:"Stufe 2",t:"Welcher Satz ist richtig?",c:6,s:15},
+ {n:"Stufe 3",t:"Baue den Satz.",c:5,s:35}
+];
+const G=$("#game");
+let S,timer,deadline,pool;
+const end=i=>i.startsWith("Können")?"?":".";
+const full=(i,p)=>i+" "+p[1]+" "+p[2]+" "+p[3]+end(i);
+function best(set){try{if(set!=null)localStorage.setItem("fsjbest",String(set));return Number(localStorage.getItem("fsjbest"))||0}catch(e){return 0}}
+
+function home(){
+ G.innerHTML='<p>Sammle Sonnenblumen! Du bekommst Fragen zum FSJ. Wandle sie in <b>indirekte Fragen</b> um. Du hast 3 Leben (♥) und wenig Zeit.</p><p class="lv">3 Stufen: Wort wählen, Satz wählen, Satz bauen.</p><p class="lv">Bester Punktestand: '+best()+'</p><button class="btn" id="go">Spiel starten</button>';
+ $("#go").onclick=()=>{S={l:0,q:0,lives:3,score:0,streak:0,ok:0,tot:0};startLevel()};
+}
+function startLevel(){
+ const L=LV[S.l];
+ G.innerHTML='<p class="lv">'+L.n+'</p><h2>'+L.t+'</h2><p>'+L.c+' Fragen, '+L.s+' Sekunden pro Frage.</p><button class="btn" id="go">Los!</button>';
+ $("#go").onclick=()=>{S.q=0;pool=shuffle(P);nextQ()};
+}
+function hud(){return '<div class="hud"><span>'+"♥".repeat(S.lives)+"♡".repeat(3-S.lives)+'</span><span>'+LV[S.l].n+" · "+(S.q+1)+"/"+LV[S.l].c+'</span><span>'+S.score+' Punkte</span><span>🔥 '+S.streak+'</span></div><div class="bar"><i id="bar"></i></div>'}
+function nextQ(){
+ const L=LV[S.l];
+ if(S.q>=L.c){S.l++;return S.l>=LV.length?finish(true):startLevel()}
+ const p=pool[S.q],intro=INTRO[Math.floor(Math.random()*INTRO.length)];
+ S.cur={p,intro,done:false};
+ G.innerHTML=hud()+'<p class="lv">'+L.t+'</p><div id="area"></div><div id="fb"></div>';
+ [l1,l2,l3][S.l](p,intro);
+ deadline=Date.now()+L.s*1000;clearInterval(timer);
+ timer=setInterval(()=>{
+  const left=deadline-Date.now(),b=$("#bar");
+  b.style.width=Math.max(0,left/(L.s*10))+"%";b.className=left<4000?"low":"";
+  if(left<=0)result(false,true)},100);
+}
+function l1(p,i){
+ const opts=shuffle([p[1],...shuffle(WORDS.filter(w=>w!==p[1])).slice(0,2)]);
+ $("#area").innerHTML='<p class="q">'+p[0]+'</p><p class="sent">'+i+' <span class="gap">___</span> '+p[2]+" "+p[3]+end(i)+'</p><div class="opts">'+opts.map(o=>'<button class="opt" data-w="'+o+'">'+o+"</button>").join("")+"</div>";
+ document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{if(S.cur.done)return;const ok=b.dataset.w===p[1];b.classList.add(ok?"ok":"bad");result(ok)});
+}
+function l2(p,i){
+ const a=p[1]+" "+p[2]+" "+p[3];
+ const verbEarly=p[1]+" "+p[3]+" "+p[2];
+ const wrongW=p[1]==="ob"?"wenn":"ob";
+ const opts=shuffle([[a,1],[verbEarly,0],[wrongW+" "+p[2]+" "+p[3],0]]);
+ $("#area").innerHTML='<p class="q">'+p[0]+'</p><p class="lv">'+i+" …</p><div class=\"opts\">"+opts.map(o=>'<button class="opt" data-c="'+o[1]+'">'+o[0]+end(i)+"</button>").join("")+"</div>";
+ document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{if(S.cur.done)return;const ok=b.dataset.c==="1";b.classList.add(ok?"ok":"bad");result(ok)});
+}
+function l3(p,i){
+ const words=[...p[1].split(" "),...p[2].split(" "),...p[3].split(" ")];
+ $("#area").innerHTML='<p class="q">'+p[0]+'</p><p class="sent">'+i+'</p><div class="slot" id="slot" aria-label="Antwort"></div><div class="bank" id="bank"></div><button class="btn" id="chk">Prüfen</button>';
+ const slot=$("#slot"),bank=$("#bank");
+ shuffle(words).forEach(w=>{const b=document.createElement("button");b.className="chip";b.textContent=w;b.onclick=()=>{if(S.cur.done)return;(b.parentNode===bank?slot:bank).appendChild(b)};bank.appendChild(b)});
+ $("#chk").onclick=()=>{if(S.cur.done)return;const got=[...slot.children].map(c=>c.textContent).join(" ");if(got)result(got===words.join(" "))};
+}
+function result(ok,timeout){
+ if(S.cur.done)return;S.cur.done=true;clearInterval(timer);
+ const left=Math.max(0,(deadline-Date.now())/1000);
+ S.tot++;
+ if(ok){S.ok++;S.streak++;S.score+=100+Math.round(left)*5+S.streak*10}
+ else{S.streak=0;S.lives--}
+ const p=S.cur.p,fb=$("#fb");
+ fb.className="fb "+(ok?"ok":"bad");
+ fb.textContent=ok?"Richtig! 🌻 "+full(S.cur.intro,p):(timeout?"Zeit vorbei. ":"Nicht ganz. ")+"Richtig ist: "+full(S.cur.intro,p);
+ document.querySelectorAll(".opt").forEach(b=>b.disabled=true);
+ $(".hud").outerHTML=hud().split('<div class="bar">')[0];
+ setTimeout(()=>{S.q++;if(S.lives<=0)finish(false);else nextQ()},ok?1100:2600);
+}
+function finish(won){
+ clearInterval(timer);
+ const pct=S.tot?S.ok/S.tot:0,stars=won?(pct>=.85?3:pct>=.6?2:1):0;
+ const old=best(),isNew=S.score>old;if(isNew)best(S.score);
+ G.innerHTML='<div class="big">'+(won?"🏆":"🌱")+'</div><h2>'+(won?"Geschafft!":"Das FSJ-Team braucht dich noch.")+'</h2><p>Du hast '+S.ok+' von '+S.tot+' Fragen richtig beantwortet.</p><p class="flowers">'+"🌻".repeat(S.ok)+'</p><p><b>'+S.score+' Punkte</b>'+(isNew?" – neuer Rekord!":"")+(won?"<br>"+"⭐".repeat(stars)+"☆".repeat(3-stars):"")+'</p><button class="btn" id="again">Noch einmal spielen</button>';
+ $("#again").onclick=home;
+}
+home();
+</script>
+</body>
+</html>
